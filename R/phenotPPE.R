@@ -124,6 +124,7 @@
 ##'
 ##' @author Alexander Zwart (alec.zwart at csiro.au)
 ##' @seealso \code{\link{genotPPE}}
+##' @importFrom utils flush.console
 ##' @export
 ##' @examples
 ##'
@@ -231,7 +232,7 @@ phenotPPE <- function(adata) {
                     dimnames=list(progeny,potentialFathers))
   ##
   cat("\n Comparing progeny and candidate fathers...\n")
-  flush.console()
+  utils::flush.console()
   ##
   ## Load the CMPStatusLookupTable relevant to the specified
   ## ploidy.
@@ -244,7 +245,7 @@ phenotPPE <- function(adata) {
   ##
   for (locus in 1:numLoci) {
     cat("\n Processing locus",locus,"of",numLoci)
-    flush.console()
+    utils::flush.console()
     locusRange <- (3+dioecious) + (locus-1)*ploidy + 1:ploidy
     ## Extract PNotM and MP alleles sets
     PNotM.alleles <- strsplit(PNotM.alleleTable[,locus]," ")

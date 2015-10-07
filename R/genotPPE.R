@@ -130,6 +130,7 @@
 ##'
 ##' @author Alexander Zwart (alec.zwart at csiro.au)
 ##' @seealso \code{\link{phenotPPE}}
+##' @importFrom utils flush.console
 ##' @export
 ##' @examples
 ##'
@@ -239,11 +240,11 @@ genotPPE <- function(adata) {
                     dimnames=list(progeny,potentialFathers))
   ##
   cat("\n Comparing progeny and candidate fathers...\n")
-  flush.console()
+  utils::flush.console()
   ##
   for (locus in 1:numLoci) {
     cat("\n Processing locus",locus,"of",numLoci)
-    flush.console()
+    utils::flush.console()
     locusRange <- (3+dioecious) + (locus-1)*ploidy + 1:ploidy
     ##
     PNotM.alleles <- strsplit(PNotM.alleleTable[,locus]," ")

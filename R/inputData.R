@@ -114,6 +114,7 @@
 ##' functions.  All columns in the output data frame will be of mode
 ##' \code{character}.
 ##' @author Alexander Zwart (alec.zwart at csiro.au)
+##' @importFrom utils read.csv
 ##' @export
 ##' @examples
 ##'
@@ -182,7 +183,7 @@ inputData <- function(file,
   {
     stop("\n Only genotype data can be processed when ploidy = 2\n")
   }
-  adata <- read.csv(file,
+  adata <- utils::read.csv(file,
                      header=TRUE,
                      colClasses = "character",
                      strip.white = TRUE,

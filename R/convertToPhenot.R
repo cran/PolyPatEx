@@ -49,12 +49,12 @@
 convertToPhenot <- function(adata) {
   ##
   checkForValidPPEDataset(adata)
-  dataType <- attr(adata,"dataType")
-  if (dataType != "genotype") stop("\n Data is not genotypic\n\n")
+##  dataType <- attr(adata,"dataType")
+  if (attr(adata,"dataType") != "genotype") stop("\n Data is not genotypic\n\n")
   numLoci <- attr(adata,"numLoci")
   ploidy <- attr(adata,"ploidy")
   dioecious <- attr(adata,"dioecious")
-  selfCompatible <- attr(adata,"selfCompatible")
+##  selfCompatible <- attr(adata,"selfCompatible")
   cat("\n Converting...\n")
   for (locus in 1:numLoci) {
     locusRange <- (3+dioecious) + (locus-1)*ploidy + 1:ploidy
@@ -69,7 +69,7 @@ convertToPhenot <- function(adata) {
                                        return(vv)
                                      }))
   }
-  dataType <- "phenotype"
+  attr(adata,"dataType") <- "phenotype"
   cat("\n Done...\n")
   return(adata)
 }

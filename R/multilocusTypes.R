@@ -52,6 +52,7 @@
 ##' }
 ##'
 ##' @author Alexander Zwart (alec.zwart at csiro.au)
+##' @importFrom utils stack
 ##' @export
 ##' @examples
 ##'
@@ -119,15 +120,15 @@ multilocusTypes <- function(adata) {
   numUniqueProgenyMLTypes <- length(uniqueProgenyMLTypes)
   numUniqueAdultMLTypes <- length(uniqueAdultMLTypes)
   ##Restructure uniqueProgenyTypes for output
-  cc <- stack(lapply(uniqueProgenyTypes,as.vector))
-  nn <- stack(lapply(uniqueProgenyTypes,names))
+  cc <- utils::stack(lapply(uniqueProgenyTypes,as.vector))
+  nn <- utils::stack(lapply(uniqueProgenyTypes,names))
   rm(uniqueProgenyTypes)
   uniqueProgenyTypes <- data.frame(Locus=cc$ind,
                                     progenyType=nn$values,
                                     nIndividuals=cc$values)
   ##Restructure uniqueAdultTypes for output
-  cc <- stack(lapply(uniqueAdultTypes,as.vector))
-  nn <- stack(lapply(uniqueAdultTypes,names))
+  cc <- utils::stack(lapply(uniqueAdultTypes,as.vector))
+  nn <- utils::stack(lapply(uniqueAdultTypes,names))
   rm(uniqueAdultTypes)
   uniqueAdultTypes <- data.frame(Locus=cc$ind,
                                  adultType=nn$values,

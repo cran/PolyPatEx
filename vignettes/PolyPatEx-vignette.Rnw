@@ -358,8 +358,8 @@ R users who create or load their data by means other than
   \texttt{id} label of the mother of that offspring.  For all
   non-progeny, entries in this column should be left blank.
 \item For dioecious data, column \texttt{gender} contains \texttt{M}
-  for \emph{male} adults, or \texttt{F} for \emph{female} adults.
-  Entries in this column for progeny should be left blank.
+  for male adults, or \texttt{F} for female adults.  Entries in this
+  column for progeny should be left blank.
 \item The remaining $p\times k$ columns contain the allele labels, one
   label per cell.  Where fewer than $p$ alleles were observed at a
   locus, the remaining cells for that locus-subject combination should
@@ -608,9 +608,9 @@ seven loci in a hexaploid, monoecious species, \emph{Eremophila glabra
 a tetraploid, dioecious species, \emph{Salix cinerea} (Hopley 2011).
 \end{sloppypar}
 
-Let us assume that the file \texttt{GF\_Phenotype.csv} has
-been copied to a suitable directory, and the R working directory has
-been set to this location (via the R file menu, or see the R function
+Let us assume that the file \texttt{GF\_Phenotype.csv} has been copied
+to a suitable directory, and the R working directory has been set to
+this location (via the R file menu, or see the R function
 \texttt{setwd()}).  Table~\ref{tbl:codeEx} shows example R code to
 load the data set into R, perform the exclusion analysis, and output
 results from the summary functions \texttt{potentialFatherCounts()}
@@ -667,7 +667,7 @@ adata <- inputData("GF_Phenotype.csv",
                    ploidy=6,
                    dataType="phenotype",
                    dioecious=FALSE,
-                   selfcompatible=TRUE)
+                   selfCompatible=TRUE)
 
 ppe1 <- phenotPPE(adata)
 
@@ -792,9 +792,11 @@ have no alleles.  In genotype datasets, allele sets that do not
 contain $p$ alleles are reset to contain no alleles (a `missing'
 allele set), and subsequent analyses will ignore this locus in this
 individual - hence, for example, reducing the number of `valid' loci
-remaining from the exclusion analysis.  Such changes to the allele
-dataset only affects the data frame in R - \texttt{preprocessData}
-does not change the input CSV file.
+remaining from the exclusion analysis. (In allelic phenotype datasets,
+there is no requirement to observe exactly $p$ unique alleles, so this
+adjustment is only relevant to genotypic data.) Such changes to the
+allele dataset only affects the data frame in R -
+\texttt{preprocessData} does not change the input CSV file.
 
 As an example, offspring-mother pairs are checked by
 \texttt{preprocessData()} for loci in which the allele sets are

@@ -48,6 +48,7 @@
 ##' \code{FLCount} and \code{VLTotal} (the \code{FLCount} and
 ##' \code{VLTotal} values for the given potential father).
 ##' @author Alexander Zwart (alec.zwart at csiro.au)
+##' @importFrom utils stack
 ##' @export
 ##' @examples
 ##'
@@ -84,7 +85,7 @@ potentialFatherIDs <- function(dataset,mismatches=0,VLTMin=1) {
                 stripNAs(fatherNames[vv])},
               colnames(dataset$adultTables$FLCount))
   aa[sapply(aa,length)==0] <- "None"
-  ss <- stack(aa)
+  ss <- utils::stack(aa)
   sMs <- attr(dataset$progenyTables$progenyStatusTable,
               "progenyMothers")
   aPs <- rownames(dataset$progenyTables$progenyStatusTable)
