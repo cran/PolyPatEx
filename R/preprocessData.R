@@ -52,16 +52,16 @@
 ##' Further checks look for mismatches between progeny and their
 ##' mothers' allele sets at each locus---these are situations where a
 ##' progeny's allele set could not have arisen from any gamete that
-##' the mother can provide.  When only one such mismatching locus
-##' occurs in a mother-progeny pair, the offending allele set in the
-##' progeny is reset to contain no alleles (we term these
-##' \sQuote{missing} allele sets).  When mismatches occur in more than
-##' one locus, the progeny is removed entirely from the dataset.
-##' Information is printed to the R terminal to assist the user in
-##' identifying the affected individuals and loci---in particular,
-##' note that removal of several (or all) of a single mother's progeny
-##' may indicate an error in the mother's allele data, rather than in
-##' her progeny.
+##' the mother can provide.  When no more than \code{matMismatches}
+##' mismatching loci occurs in a mother-progeny pair, the offending
+##' allele sets in the progeny are reset to contain no alleles (we
+##' term these \sQuote{missing} allele sets).  When mismatches occur
+##' in more than \code{matMismatches} loci, the progeny is removed
+##' entirely from the dataset.  Information is printed to the R
+##' terminal to assist the user in identifying the affected
+##' individuals and loci---in particular, note that removal of several
+##' (or all) of a single mother's progeny may indicate an error in the
+##' mother's allele data, rather than in her progeny.
 ##'
 ##' After the mother/progeny mismatch check above, a subsequent check
 ##' removes individuals from the dataset that have fewer than
@@ -125,6 +125,12 @@
 ##' @param lociMin integer: the minimum number of loci in a individual
 ##' that must have alleles present for the individual (and its
 ##' progeny, if any) to be retained in the dataset (default 1).
+##' @param matMismatches an integer between 0 and \code{numLoci}-1,
+##' being the maximum number of mismatching alleles between mother and
+##' offspring that are allowed before the offspring is removed from the
+##' dataset.  The default value is 0.  If an offspring has fewer
+##' than \code{matMismatches} loci that mismatch with its mother, the
+##' offending loci are set to contain no alleles.
 ##' @return  A data frame, containing the checked and pre-processed
 ##' allele data, ready for further analysis by other \pkg{PolyPatEx}
 ##' functions.  All columns in the returned data frame will be of mode
@@ -166,7 +172,8 @@ preprocessData <- function(adata,
                            dioecious,
                            selfCompatible=NULL,
                            mothersOnly=NULL,
-                           lociMin=1) {
+                           lociMin=1,
+                           matMismatches=0) {
   ##
   if (!(ploidy %in% c(2,4,6,8))) {
     stop('\n Please specify the ploidy= argument as 2, 4, 6 or 8\n\n')
@@ -192,6 +199,11 @@ preprocessData <- function(adata,
   {
     stop("\n Only genotype data can be processed when ploidy = 2\n")
   }
+  ##
+  if (!(matMismatches %in% 0:(numLoci-1)))
+    {
+      stop("Argument matMismatches= must be an integer between 0 and numLoci-1 (inclusive)")
+    }
   ##
   nonCharColumns <- sapply(adata,"class") != "character"
   if (any(nonCharColumns)) {
@@ -221,7 +233,7 @@ preprocessData <- function(adata,
           your dataset should be 'gender'...\n\n")
   }
   ##
-  ##Does the number of columns match the specified number of loci and
+  ## Does the number of columns match the specified number of loci and
   ## ploidy (& dioecious status)?
   if (ncol(adata)-(3+dioecious) != numLoci*ploidy) {
     messg <- paste("\n The number of columns in the dataset is inconsistent with \n",
@@ -231,16 +243,16 @@ preprocessData <- function(adata,
     stop(messg)
   }
   ##
-  ##All entries uniquely identified
+  ## All entries uniquely identified
   if (any(duplicated(adata$id))) {
     stop("\n The 'id' column in the dataset should UNIQUELY identify each
           row of the dataset.\n\n")
   }
   ##
-  ##If all id's are unique, use 'em as rownames...
+  ## If all id's are unique, use 'em as rownames...
   rownames(adata) <- adata$id
   ##
-  ##Comment on the number of populations:
+  ## Comment on the number of populations:
   if (length(unique(adata$popn)) > 1) {
     cat("\n There appears to be more than one population in this dataset.\n")
     cat("\n Note that PolyPatEx functions ignore distinctions between populations...\n")
@@ -331,8 +343,9 @@ preprocessData <- function(adata,
     }
   }
   ##
-  ## If phenotypic data, check that all alleles in each individual at
-  ## each locus are distinct - stop if there are any problems
+  ## If allelic phenotype data, check that all alleles in each
+  ## individual at each locus are distinct - stop if there are any
+  ## problems
   if (dataType=="phenotype") {
     inds <- alleleCounts > uniqueAlleleCounts
     if(any(inds)) {
@@ -344,11 +357,12 @@ preprocessData <- function(adata,
       cat("\n Note: The following id-locus combos have repeated alleles:\n\n")
       print(errCombos)
       cat("\n")
-      stop("\n Please remove allele repeats from phenotypic data\n\n")
+      stop("\n Please remove allele repeats from allelic phenotype data\n\n")
     }
   }
   ##
-  ## Append dataset descriptors as attributes (needed for removeMismatches)
+  ## Append dataset descriptors as attributes (needed for
+  ## removeMismatches)
   attr(adata,"numLoci") <- numLoci
   attr(adata,"ploidy") <- ploidy
   attr(adata,"dataType") <- dataType
@@ -357,7 +371,7 @@ preprocessData <- function(adata,
   attr(adata,"mothersOnly") <- mothersOnly
   ## Deal with any mismatching allele sets between mothers and their
   ## progeny
-  adata <- removeMismatches(adata)
+  adata <- removeMismatches(adata,matMismatches)
   ##
   ## For each individual, which allele sets remain non-empty?
   allelesPresent <- matrix(0, nrow=dim(adata)[1],
@@ -421,6 +435,16 @@ preprocessData <- function(adata,
     }
   }  # Otherwise non-mother females remain in the dataset
   ##
+  ## Mother/progeny mismatches could result in no progeny (or their
+  ## mothers) left in the dataset - check, and abort if this is the
+  ## case.
+  if (length(adata$id[!is.na(adata$mother)])==0) {
+    msg <- paste0("\nThere appear to be no progeny in this dataset.  Perhaps",
+                  "\n the data checking & cleaning above has removed all",
+                  "\n progeny and their mothers from the dataset?  Otherwise,",
+                  "\n check the format of your data file for possible errors.\n")
+    stop(msg)
+  }
   cat("\n Done \n\n")
   return(adata)
 }

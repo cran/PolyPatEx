@@ -7,7 +7,11 @@
 ##' \code{inputData} reads in an allele dataset from the specified
 ##' file, then calls \code{\link{preprocessData}} to perform a series
 ##' of data format checks and preprocessing steps before returning the
-##' checked and preprocessed dataset as an R data frame.
+##' checked and preprocessed dataset as an R data frame.  The
+##' reference information for \code{\link{preprocessData}} contains
+##' further information on the checks and preprocessing - it is
+##' strongly recommended you read that information in addition to the
+##' information below.
 ##'
 ##' The use of \code{inputData} is optional, if you wish to create or
 ##' load the allele dataset into R by other means. However, it is then
@@ -107,6 +111,12 @@
 ##' its progeny, if the individual is a mother) to be retained in the
 ##' dataset.  See the help for \code{\link{preprocessData}} for more
 ##' on this parameter.
+##' @param matMismatches an integer between 0 and \code{numLoci}-1,
+##' being the maximum number of mismatching loci between mother and
+##' offspring that are allowed before the offspring is removed from
+##' the dataset.  The default value is 0.  If an offspring has fewer
+##' than \code{matMismatches} loci that mismatch with its mother, the
+##' offending loci are set to contain no alleles.
 ##' @param skip integer: the number of lines in the CSV to skip
 ##' before the header row of the table.
 ##' @return A data frame, containing the checked and pre-processed
@@ -157,6 +167,7 @@ inputData <- function(file,
                       selfCompatible=NULL,
                       mothersOnly=NULL,
                       lociMin=1,
+                      matMismatches=0,
                       skip=0) {
   ##
   if (!(ploidy %in% c(2,4,6,8))) {
@@ -191,14 +202,15 @@ inputData <- function(file,
                      fill=FALSE,
                      skip=skip)
   ##
-  return(preprocessData(adata=adata,
-                        numLoci=numLoci,
-                        ploidy=ploidy,
-                        dataType=dataType,
-                        dioecious=dioecious,
-                        selfCompatible=selfCompatible,
-                        mothersOnly=mothersOnly,
-                        lociMin=lociMin))
+  return(preprocessData(adata = adata,
+                        numLoci = numLoci,
+                        ploidy = ploidy,
+                        dataType = dataType,
+                        dioecious = dioecious,
+                        selfCompatible = selfCompatible,
+                        mothersOnly = mothersOnly,
+                        lociMin = lociMin,
+                        matMismatches = matMismatches))
 }
 
 

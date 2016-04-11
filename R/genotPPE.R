@@ -224,9 +224,9 @@ genotPPE <- function(adata) {
                              dimnames=list(1:numLoci,
                                progeny,
                                potentialFathers))
-  ##Numbers of possibly paternal allele sets out of total number of
-  ##'valid' allele sets (allele sets at which a valid comparison was
-  ##possible) for each progeny/candidate combination
+  ## Numbers of possibly paternal allele sets out of total number of
+  ## 'valid' allele sets (allele sets at which a valid comparison was
+  ## possible) for each progeny/candidate combination
   fatherSummaryTable <- matrix(NA_character_,nrow=length(progeny),
                                ncol=length(potentialFathers),
                                dimnames=list(progeny,potentialFathers))

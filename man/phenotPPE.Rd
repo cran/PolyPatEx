@@ -123,7 +123,7 @@ of allele sets having duplicated alleles will have previously been
 caught by \code{\link{preprocessData}} (automatically called by
 \code{\link{inputData}}) and will have produced an error message,
 requiring the user to remove any duplicated alleles (within allele
-sets) in the original data file).
+sets) in the original data file.
 
 For the above and other reasons, \code{phenotPPE} should
 \bold{NOT} be applied to a dataset that has not been preprocessed

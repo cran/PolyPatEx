@@ -74,6 +74,8 @@
 ##'
 potentialFatherCounts <- function(dataset,mismatches=0,VLTMin=1) {
   ##
+  checkForValidPPEOutputObj(dataset)
+  ##
   progenyMothers <- attr(dataset$progenyTables$progenyStatusTable,
                           "progenyMothers")
   pFC <- apply(with(dataset$adultTables,

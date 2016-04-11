@@ -8,13 +8,13 @@
 ## identify cases where a progeny's mother is incapable of providing
 ## a gamete compatible with the progeny's allele set.
 ##
-## Where only one locus in a progeny-mother pair is a mismatch
-## (\sQuote{single locus mismatch}), the offending locus is set to
-## have no alleles (a \sQuote{missing locus}) in the progeny.  This
-## locus will therefore be ignored in subsequent analyses.
+## Where \code{matMismatches} or fewer loci in a progeny-mother pair
+## are mismatches, the offending loci are set to have no alleles in
+## the progeny.  This locus will therefore be ignored in subsequent
+## analyses.
 ##
-## Where more than one locus is a mismatch(\sQuote{multi-locus
-## mismatch}), the progeny is removed entirely from the dataset.
+## Where more than \code{matMismatches} loci are mismatches, the
+## progeny is removed entirely from the dataset.
 ##
 ## \code{removeMismatches} will report details of such mismatches to
 ## the R console, to help the user to track down and check their
@@ -23,11 +23,15 @@
 ##
 ## @title Remove mismatches between mother and progeny
 ## @param adata data frame: an allele dataset.
+## @param matMismatches an integer between 0 and \code{numLoci}-1,
+## being the maximum number of mismatching alleles between mother and
+## offspring that are allowed before the offspring is removed from the
+## dataset.
 ## @return An allele dataset as a data frame, with identified
 ##              mismatches removed (see details)
 ## @author Alexander Zwart (alec.zwart at csiro.au)
 ##
-removeMismatches <- function(adata) {
+removeMismatches <- function(adata,matMismatches) {
   ##
   checkForValidPPEDataset(adata)
   numLoci <- attr(adata,"numLoci")
@@ -43,17 +47,25 @@ removeMismatches <- function(adata) {
   }
   ##
   locusMismatches <- progenyStatusTable == "MP.noMatch"
-  singleLocusMismatches <- apply(locusMismatches,1,sum) == 1
-  multiLocusMismatches <- apply(locusMismatches,1,sum) > 1
+  if (matMismatches==0)
+    {
+      fewerLocusMismatches <- FALSE
+    } else {
+      fewerLocusMismatches <- apply(locusMismatches,1,sum) %in% (1:matMismatches)
+      ## '>' below returns a named vector, '%in%' does not (shrug).
+      names(fewerLocusMismatches) <- rownames(locusMismatches)
+    }
+  moreLocusMismatches <- apply(locusMismatches,1,sum) > matMismatches
   ##
-  if (any(multiLocusMismatches)) {
-    multiMismatchProgeny <- names(multiLocusMismatches)[multiLocusMismatches]
-    cat("\n Multi-locus (i.e., 2 or more) mismatches between mother and")
-    cat("\n progeny have been found.  The relevant progeny will be")
+  if (any(moreLocusMismatches)) {
+    multiMismatchProgeny <- names(moreLocusMismatches)[moreLocusMismatches]
+    cat("\n Progeny having greater than matMismatches = ",matMismatches,
+        " mismatches between",sep="")
+    cat("\n mother and progeny have been found.  The relevant progeny will be")
     cat("\n removed from the dataset.  The progeny and their mismatching")
     cat("\n loci are: \n\n")
     ML.Ptab <-  cbind(ProgenyId = multiMismatchProgeny,
-                      Loci = apply(locusMismatches[multiLocusMismatches,,drop=FALSE],
+                      Loci = apply(locusMismatches[moreLocusMismatches,,drop=FALSE],
                         1,
                         function(vv){
                           paste(which(vv),collapse=", ")
@@ -70,10 +82,10 @@ removeMismatches <- function(adata) {
                           total.progeny = as.vector(t2[match(names(t1),
                             names(t2))]))
     cat("\n The following table provides a summary for the mothers of the")
-    cat("\n progeny above.  The table shows, for each affected mother,")
-    cat("\n the number of progeny in which such multilocus mismatches")
-    cat("\n occur, and the total number of progeny for that mother. This")
-    cat("\n may help identify possible problems with a mother's allele set.\n\n")
+    cat("\n progeny reported above.  The table shows, for each affected")
+    cat("\n mother, the number of progeny in which mismatches occur, and")
+    cat("\n the total number of progeny for that mother. This may help")
+    cat("\n identify possible problems with a mother's allele set.\n\n")
     print(ML.Mtab,quote=FALSE)
     ##
     ##Remove progeny with multi-locus mismatches from the dataset.
@@ -81,15 +93,16 @@ removeMismatches <- function(adata) {
     ##
   }
   ##
-  if (any(singleLocusMismatches)) {
+  if (any(fewerLocusMismatches)) {
     ##
-    singleMismatchProgeny <- names(singleLocusMismatches)[singleLocusMismatches]
-    cat("\n\n Single-locus mismatches between mother and progeny have")
-    cat("\n been found.  The relevant progeny-locus combinations will")
-    cat("\n be set to contain no alleles ('allele set missing'). The")
-    cat("\n progeny and their mismatching loci are: \n\n")
-    cc <-  cbind(ProgenyId = singleMismatchProgeny,
-                 Locus = apply(locusMismatches[singleLocusMismatches,,drop=FALSE],
+    fewerMismatchProgeny <- names(fewerLocusMismatches)[fewerLocusMismatches]
+    cat("\n\n Progeny having matMismatches = ",matMismatches,
+        " or fewer mismatches between",sep="")
+    cat("\n mother and progeny have been found.  The relevant progeny-locus")
+    cat("\n combinations will be set to contain no alleles. The progeny and")
+    cat("\n their mismatching loci are: \n\n")
+    cc <-  cbind(ProgenyId = fewerMismatchProgeny,
+                 Loci = apply(locusMismatches[fewerLocusMismatches,,drop=FALSE],
                    1,
                    function(vv){
                      paste(which(vv),collapse=", ")
@@ -97,35 +110,41 @@ removeMismatches <- function(adata) {
                  )
     rownames(cc) <- NULL
     cc <- as.data.frame(cc)
-    cc$Locus <- as.numeric(as.character(cc$Locus))
+    cc$Loci <- as.numeric(as.character(cc$Loci))
     print(cc,quote=FALSE)
     cat("\n")
     ##
     ##Tally the progeny from each mother that are to be 'repaired'.
-    t1 <- with(adata,table(mother[id %in% singleMismatchProgeny]))
+    t1 <- with(adata,table(mother[id %in% fewerMismatchProgeny]))
     ##The total number of progeny for each each mother
     t2 <- table(stripNAs(adata$mother))
     SL.Mtab <- data.frame(Mother=names(t1),
                           num.SL.mismatches=as.vector(t1),
                             total.progeny = as.vector(t2[match(names(t1),
                               names(t2))]))
-    cat("\n The following table summarises the mothers having progeny with")
-    cat("\n single locus mismatches, the number of progeny per mother in")
-    cat("\n which such mismatches occur, and the total number of progeny")
-    cat("\n per mother.  This may help identify possible problems with a")
-    cat("\n mother's allele set.\n\n")
+    cat("\n The following table summarises the mothers of the progeny")
+    cat("\n reported above, the number of progeny per mother in")
+    cat("\n which mismatches occur, and the total number of progeny")
+    cat("\n per mother.  This may help identify possible problems with")
+    cat("\n a mother's allele set.\n\n")
     print(SL.Mtab,quote=FALSE)
     cat("\n")
     ##
-    ##Set any single-locus mismatches to be all missing.
-    for (thisProgeny in as.character(cc$ProgenyId)) {
-      locusRange <- (3 + dioecious) + 1:ploidy +
-        (with(cc,Locus[ProgenyId==thisProgeny])-1)*ploidy
-      is.na(adata[thisProgeny, locusRange]) <- TRUE
-    }
-    cat("\n Note that single-locus mismatches will subsequently be")
-    cat("\n recorded as 'P.missing', since such loci have had all")
-    cat("\n progeny alleles removed from the dataset\n\n")
+    ##Set the affected 'fewerLocusMismatches' loci to missing.
+    cc$Loci <- as.character(cc$Loci) ## To ensure strsplit() works.
+    for (thisProgeny in as.character(cc$ProgenyId))
+      {
+        affectedLoci <- as.numeric(unlist(strsplit(cc$Loci[cc$ProgenyId==thisProgeny],", ")))
+        for (thisLocus in affectedLoci)
+          {
+            locusRange <- (3 + dioecious) + 1:ploidy +
+              (thisLocus-1)*ploidy
+            is.na(adata[thisProgeny, locusRange]) <- TRUE
+          }
+      }
+    cat("\n Note that the affected loci will subsequently be")
+    cat("\n recorded as 'P.missing', since such loci have had")
+    cat("\n all progeny alleles removed from the dataset\n\n")
   }
   ##
   return(adata)

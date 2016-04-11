@@ -5,7 +5,8 @@
 \title{Check and preprocess an allele dataset}
 \usage{
 preprocessData(adata, numLoci, ploidy, dataType, dioecious,
-  selfCompatible = NULL, mothersOnly = NULL, lociMin = 1)
+  selfCompatible = NULL, mothersOnly = NULL, lociMin = 1,
+  matMismatches = 0)
 }
 \arguments{
 \item{adata}{data frame: an allele dataset.}
@@ -36,6 +37,13 @@ argument \code{mothersOnly} should be left at its default value of
 \item{lociMin}{integer: the minimum number of loci in a individual
 that must have alleles present for the individual (and its
 progeny, if any) to be retained in the dataset (default 1).}
+
+\item{matMismatches}{an integer between 0 and \code{numLoci}-1,
+being the maximum number of mismatching alleles between mother and
+offspring that are allowed before the offspring is removed from the
+dataset.  The default value is 0.  If an offspring has fewer
+than \code{matMismatches} loci that mismatch with its mother, the
+offending loci are set to contain no alleles.}
 }
 \value{
 A data frame, containing the checked and pre-processed
@@ -96,16 +104,16 @@ these cases in their original dataset.
 Further checks look for mismatches between progeny and their
 mothers' allele sets at each locus---these are situations where a
 progeny's allele set could not have arisen from any gamete that
-the mother can provide.  When only one such mismatching locus
-occurs in a mother-progeny pair, the offending allele set in the
-progeny is reset to contain no alleles (we term these
-\sQuote{missing} allele sets).  When mismatches occur in more than
-one locus, the progeny is removed entirely from the dataset.
-Information is printed to the R terminal to assist the user in
-identifying the affected individuals and loci---in particular,
-note that removal of several (or all) of a single mother's progeny
-may indicate an error in the mother's allele data, rather than in
-her progeny.
+the mother can provide.  When no more than \code{matMismatches}
+mismatching loci occurs in a mother-progeny pair, the offending
+allele sets in the progeny are reset to contain no alleles (we
+term these \sQuote{missing} allele sets).  When mismatches occur
+in more than \code{matMismatches} loci, the progeny is removed
+entirely from the dataset.  Information is printed to the R
+terminal to assist the user in identifying the affected
+individuals and loci---in particular, note that removal of several
+(or all) of a single mother's progeny may indicate an error in the
+mother's allele data, rather than in her progeny.
 
 After the mother/progeny mismatch check above, a subsequent check
 removes individuals from the dataset that have fewer than

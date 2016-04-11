@@ -77,6 +77,8 @@
 ##'
 potentialFatherIDs <- function(dataset,mismatches=0,VLTMin=1) {
   ##
+  checkForValidPPEOutputObj(dataset)
+  ##
   aa <- apply(with(dataset$adultTables,
                    VLTotal >= max(VLTMin,mismatches+1) &
                    (FLCount >= VLTotal-mismatches)),
@@ -84,6 +86,15 @@ potentialFatherIDs <- function(dataset,mismatches=0,VLTMin=1) {
               function(vv,fatherNames) {
                 stripNAs(fatherNames[vv])},
               colnames(dataset$adultTables$FLCount))
+  if (length(aa)==0)
+    {
+      warning("No potential fathers were found for any offspring")
+      return(data.frame(Progeny=character(),
+                 Mother=character(),
+                 potentialFather=character(),
+                 FLCount=numeric(),
+                 VLTotal=numeric()))
+    }
   aa[sapply(aa,length)==0] <- "None"
   ss <- utils::stack(aa)
   sMs <- attr(dataset$progenyTables$progenyStatusTable,

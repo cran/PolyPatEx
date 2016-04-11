@@ -709,6 +709,10 @@ be loaded:
     must have alleles present for the individual to be retained in the
     dataset. This argument has a default value of \texttt{lociMin=1}.
     For more on this argument, see Section~\ref{sec:preprocessData}.
+  \item \texttt{matMismatches} The minimum allowed number of loci in a
+    given offspring that are allowed to mismatch between mother and
+    offspring before the offspring is removed from the dataset.  For
+    more on this argument, see Section~\ref{sec:preprocessData}.
 \end{itemize}
 
 % A further argument to \texttt{inputData()} (and \texttt{fixCSV()}) is
@@ -810,14 +814,19 @@ arising from the observed phenotypes before it can confirm whether a
 mother's observed alleles compatible with the offsprings observed
 alleles.
 
-If only a single such mismatching locus is found in a given
-mother-offspring pair, then the relevant allele set in the
-\emph{offspring} is reset to contain no alleles.  If more than one
-mismatching locus is found in an offspring-mother pair, the entire
-offspring is removed from the dataset.  These modifications are
-reported to the user with details of the individuals and loci
-involved, so that the user may, if they wish, check for and correct
-possible data errors in the input CSV file.
+An argument, \texttt{matMismatches} is provided that allows the user
+to specify the number of mismatching loci between mother and offspring
+that are allowed before the offspring is removed from the dataset.
+\texttt{matMismatches} may be between \texttt{0} and \texttt{numLoci -
+  1}.  If a given offspring has \texttt{matMismatches} or fewer loci
+mismatching with its mother, the affected loci in the \emph{offspring}
+are set to be missing (i.e. to contain no non-missing alleles).  If an
+offspring has greater than \texttt{matMismatches} missing loci, its
+data will be removed from the dataset returned by
+\texttt{preprocessData}.  The default value for \texttt{matMismatches}
+is \texttt{0}.  Details of the affected individuals and loci involved
+are reported to the user, so that they may, if they wish, check for
+and correct possible data errors in the input CSV file.
 
 \section{The exclusion comparisons}
 
